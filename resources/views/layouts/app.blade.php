@@ -29,6 +29,10 @@
         .navbar {
             background: linear-gradient(to right, #0d6efd, #6610f2); /* Cool gradient */
         }
+        .dropdown-item.text-danger:hover {
+            background-color: rgba(228, 215, 248, 0.85);
+            color: #ffffff;
+        }
 
         .sidebar {
             min-height: 100vh;
@@ -108,32 +112,50 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('contacts.index') }}">📇 Laravel CRM</a>
+            <a class="navbar-brand text-white" href="{{ route('contacts.index') }}">📇 Laravel CRM</a>
 
-            <div class="collapse navbar-collapse justify-content-end">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
                 <ul class="navbar-nav">
                     @auth
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                               data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button class="dropdown-item">Logout</button>
+                                        <button type="submit" class="dropdown-item text-danger">Logout</button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
                     @endauth
+
+                    @guest
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('login') }}">Login</a>
+                        </li>
+                        @if (Route::has('register'))
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('register') }}">Register</a>
+                            </li>
+                        @endif
+                    @endguest
                 </ul>
             </div>
         </div>
     </nav>
+
 
     <div class="container-fluid">
         <div class="row">

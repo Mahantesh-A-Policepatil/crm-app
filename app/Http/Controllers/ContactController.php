@@ -28,7 +28,7 @@ class ContactController extends Controller
                     $deleteUrl = route('contacts.destroy', $row->id);
 
                     return '
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="' . $editUrl . '" class="btn btn-sm btn-primary">Edit</a>
                     <button class="btn btn-sm btn-danger" onclick="confirmDelete(' . $row->id . ')">Delete</button>
                 ';
                 })
