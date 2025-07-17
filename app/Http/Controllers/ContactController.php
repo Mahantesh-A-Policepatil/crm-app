@@ -15,6 +15,7 @@ class ContactController extends Controller
     /**
      * @param Request $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function index(Request $request)
     {
