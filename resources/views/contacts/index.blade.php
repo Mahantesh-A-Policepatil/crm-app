@@ -28,27 +28,7 @@
         </table>
     </div>
 
-    <!-- Delete Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <form id="deleteForm" method="POST">
-                @csrf @method('DELETE')
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Confirm Delete</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">Are you sure you want to delete this contact?</div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Merge Modal -->
+    <!-- Merge Modal (unchanged) -->
     <div class="modal fade" id="mergeModal" tabindex="-1">
         <div class="modal-dialog">
             <form id="mergeForm">@csrf
@@ -110,7 +90,6 @@
                         .html(enabled
                             ? '<i class="bi bi-check-circle me-1"></i>You can now click Merge Selected.'
                             : '<i class="bi bi-info-circle me-1"></i>Please note: Merge Selected button is currently disabled. Select at least 2 contacts to enable it.');
-
                 });
             }
 
@@ -158,9 +137,38 @@
                 });
             });
 
+            // ✅ Updated Delete Handler using SweetAlert2
             window.confirmDelete = function (id) {
-                $('#deleteForm').attr('action', `/contacts/${id}`);
-                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This contact will be moved to trash.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/contacts/${id}`,
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('Deleted!', response.message, 'success');
+                                    table.ajax.reload();
+                                } else {
+                                    Swal.fire('Error', 'Something went wrong.', 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Error', 'Could not delete the contact.', 'error');
+                            }
+                        });
+                    }
+                });
             };
         });
     </script>

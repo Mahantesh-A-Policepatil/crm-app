@@ -163,11 +163,16 @@ class ContactController extends Controller
      * @param Contact $contact
      * @return JsonResponse
      */
-    public function destroy(Contact $contact)
+    public function destroy(Contact $contact): JsonResponse
     {
         $contact->delete();
-        return response()->json(['success' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contact deleted successfully!'
+        ]);
     }
+
 
 
     /**
