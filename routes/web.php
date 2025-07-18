@@ -27,6 +27,7 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::resource('contacts', ContactController::class);
+    Route::post('/contacts/merge', [ContactController::class, 'merge'])->name('contacts.merge');
 });
 
 

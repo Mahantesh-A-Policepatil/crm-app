@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use Exception;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 
@@ -14,45 +19,69 @@ class ContactController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse
-     * @throws \Exception
+     * @return Application|Factory|View|JsonResponse
+     * @throws Exception
      */
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $contacts = Contact::query();
+            $contacts = Contact::all();
 
             return DataTables::of($contacts)
-                ->addColumn('action', function ($row) {
-                    $editUrl = route('contacts.edit', $row->id);
-                    $deleteUrl = route('contacts.destroy', $row->id);
-
-                    return '
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-primary">Edit</a>
-                    <button class="btn btn-sm btn-danger" onclick="confirmDelete(' . $row->id . ')">Delete</button>
-                ';
+                ->addColumn('checkbox', function ($contact) {
+                    return $contact->is_merged
+                        ? ''
+                        : '<input type="checkbox" class="merge-checkbox" value="' . $contact->id . '">';
                 })
-                ->rawColumns(['action'])
+                ->addColumn('name', function ($contact) {
+                    $icon = $contact->is_merged
+                        ? '<i class="bi bi-person-dash-fill text-danger me-1" title="Merged"></i>'
+                        : '<i class="bi bi-person-check-fill text-success me-1" title="Active"></i>';
+
+                    return '<span class="contact-name" id="contact-name-' . $contact->id . '">' . $icon . e($contact->name) . '</span>';
+                })
+                ->addColumn('status', function ($contact) {
+                    return $contact->is_merged
+                        ? '<span class="badge bg-danger">Merged</span>'
+                        : '<span class="badge bg-success">Active</span>';
+                })
+                ->addColumn('action', function ($contact) {
+                    $edit = '<a href="' . route('contacts.edit', $contact->id) . '" class="btn btn-sm btn-primary me-1">Edit</a>';
+                    $delete = '<button onclick="confirmDelete(' . $contact->id . ')" class="btn btn-sm btn-danger">Delete</button>';
+                    return $edit . $delete;
+                })
+                ->rawColumns(['checkbox', 'name', 'status', 'action'])
                 ->make(true);
         }
 
         return view('contacts.index');
     }
 
+    /**
+     * @param $id
+     * @return Application|Factory|View
+     */
+    public function show($id)
+    {
+        $contact = Contact::findOrFail($id);
+
+        return view('contacts.show', compact('contact'));
+    }
 
     /**
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @return Application|Factory|View
      */
-    public function create()
+    public function create(): Factory|View|Application
     {
         return view('contacts.create');
     }
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required',
@@ -78,9 +107,9 @@ class ContactController extends Controller
 
     /**
      * @param Contact $contact
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @return Application|Factory|View
      */
-    public function edit(Contact $contact)
+    public function edit(Contact $contact): Factory|View|Application
     {
         return view('contacts.edit', compact('contact'));
     }
@@ -88,14 +117,9 @@ class ContactController extends Controller
     /**
      * @param Request $request
      * @param Contact $contact
-     * @return void
+     * @return JsonResponse
      */
-    /**
-     * @param Request $request
-     * @param Contact $contact
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, Contact $contact)
+    public function update(Request $request, Contact $contact): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required',
@@ -131,7 +155,7 @@ class ContactController extends Controller
 
     /**
      * @param Contact $contact
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function destroy(Contact $contact)
     {
@@ -139,12 +163,46 @@ class ContactController extends Controller
         return response()->json(['success' => true]);
     }
 
+
     /**
      * @param Request $request
-     * @return void
+     * @return JsonResponse
      */
-    public function merge(Request $request)
+    public function merge(Request $request): JsonResponse
     {
-        // Handle merging logic here
+        $request->validate([
+            'master_id' => 'required|exists:contacts,id',
+            'secondary_id' => 'required|different:master_id|exists:contacts,id',
+        ]);
+
+        $master = Contact::findOrFail($request->master_id);
+        $secondary = Contact::findOrFail($request->secondary_id);
+
+        // Basic field merging logic (example)
+        if (!$master->email && $secondary->email) $master->email = $secondary->email;
+        if (!$master->phone && $secondary->phone) $master->phone = $secondary->phone;
+        $master->save();
+
+        // Merge custom fields (only if not set in master)
+        foreach ($secondary->customFieldValues as $value) {
+            $exists = $master->customFieldValues()
+                ->where('custom_field_id', $value->custom_field_id)
+                ->exists();
+
+            if (!$exists) {
+                $master->customFieldValues()->create([
+                    'custom_field_id' => $value->custom_field_id,
+                    'value' => $value->value,
+                ]);
+            }
+        }
+
+        $secondary->update([
+            'is_merged' => true,
+            'merged_into' => $master->id,
+        ]);
+
+        return response()->json(['success' => true]);
     }
+
 }

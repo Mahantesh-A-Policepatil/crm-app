@@ -11,6 +11,7 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -167,9 +168,6 @@
                         <i class="bi bi-person-lines-fill me-1"></i> Contact List
                     </a>
                     <a href="{{ route('contacts.create') }}">➕ Create New Contact</a>
-                    <a href="{{ route('contacts.index') }}#merge">🔀 Merge Contacts</a>
-                    <a href="#">⬇️ Export to Excel</a>
-                    <a href="#">🖨️ Export to PDF</a>
                 </div>
             @endauth
 
