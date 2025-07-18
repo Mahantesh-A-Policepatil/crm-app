@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * ContactCustomFieldValue
+ *
+ * Stores values for custom fields attached to a contact.
+ * Acts as a pivot-like table between Contact and CustomField.
+ *
+ * @author Mahantesh-A-Policepatil
+ * @date 2025-07-16
+ */
 class ContactCustomFieldValue extends Model
 {
     use HasFactory;

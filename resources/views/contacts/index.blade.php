@@ -8,9 +8,9 @@
             <a href="{{ route('contacts.create') }}" class="btn btn-success">+ Add Contact</a>
             <button id="mergeBtn" class="btn btn-warning" disabled>Merge Selected</button>
             <span id="merge-note" class="text-danger small">
-            <i class="bi bi-info-circle me-1"></i>
-            Please note: Merge Selected button is currently disabled. Select exactly 2 rows to enable it.
-        </span>
+                <i class="bi bi-info-circle me-1"></i>
+                Please note: Merge Selected button is currently disabled. Select at least 2 contacts to enable it.
+            </span>
         </div>
 
         <table class="table table-striped table-hover shadow rounded" id="contacts-table">
@@ -81,13 +81,13 @@
                 serverSide: true,
                 ajax: '{{ route("contacts.index") }}',
                 columns: [
-                    { data: 'checkbox', name: 'checkbox', orderable: false, searchable: false },
-                    { data: 'name', name: 'name' },
-                    { data: 'email', name: 'email' },
-                    { data: 'phone', name: 'phone' },
-                    { data: 'gender', name: 'gender' },
-                    { data: 'status', name: 'status' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                    {data: 'checkbox', name: 'checkbox', orderable: false, searchable: false},
+                    {data: 'name', name: 'name'},
+                    {data: 'email', name: 'email'},
+                    {data: 'phone', name: 'phone'},
+                    {data: 'gender', name: 'gender'},
+                    {data: 'status', name: 'status'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false}
                 ],
                 drawCallback: attachCheckboxListeners
             });
@@ -102,30 +102,29 @@
                         return $(this).val();
                     }).get();
 
-                    const enabled = selectedContactIds.length === 2;
+                    const enabled = selectedContactIds.length >= 2;
                     $('#mergeBtn').prop('disabled', !enabled);
                     $('#merge-note')
                         .toggleClass('text-danger', !enabled)
                         .toggleClass('text-success', enabled)
                         .html(enabled
                             ? '<i class="bi bi-check-circle me-1"></i>You can now click Merge Selected.'
-                            : '<i class="bi bi-info-circle me-1"></i>Please note: Merge Selected button is currently disabled. Select exactly 2 rows to enable it.');
+                            : '<i class="bi bi-info-circle me-1"></i>Please note: Merge Selected button is currently disabled. Select at least 2 contacts to enable it.');
+
                 });
             }
 
             $('#mergeBtn').on('click', function () {
                 const modalBody = $('#mergeModalBody');
                 modalBody.empty();
-
-                selectedContactIds.forEach((id, index) => {
-                    const label = index === 0 ? 'Primary' : 'Secondary';
+                selectedContactIds.forEach((id) => {
                     const name = $(`#contact-name-${id}`).text();
                     modalBody.append(`
-                <div class="form-check mb-1">
-                    <input class="form-check-input" type="radio" name="master_id" value="${id}" id="master-${id}">
-                    <label class="form-check-label" for="master-${id}"><strong>${label}:</strong> ${name}</label>
-                </div>
-            `);
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="master_id" value="${id}" id="master-${id}">
+                            <label class="form-check-label" for="master-${id}">${name}</label>
+                        </div>
+                    `);
                 });
 
                 new bootstrap.Modal(document.getElementById('mergeModal')).show();
@@ -135,9 +134,9 @@
                 e.preventDefault();
 
                 const master_id = $('input[name="master_id"]:checked').val();
-                const secondary_id = selectedContactIds.find(id => id !== master_id);
+                const secondary_ids = selectedContactIds.filter(id => id !== master_id);
 
-                if (!master_id || !secondary_id) {
+                if (!master_id || !secondary_ids) {
                     Swal.fire('Error', 'Please select a master contact.', 'error');
                     return;
                 }
@@ -145,7 +144,7 @@
                 $.post('{{ route("contacts.merge") }}', {
                     _token: '{{ csrf_token() }}',
                     master_id,
-                    secondary_id
+                    secondary_ids
                 }).done(function () {
                     Swal.fire('Merged!', 'Contacts have been merged.', 'success').then(() => {
                         bootstrap.Modal.getInstance(document.getElementById('mergeModal'))?.hide();

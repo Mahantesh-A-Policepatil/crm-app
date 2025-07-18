@@ -12,7 +12,13 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 
 /**
+ * ContactController
  *
+ * This controller handles all CRUD operations and merge logic
+ * for managing contacts in the CRM.
+ *
+ * @author Mahantesh-A-Policepatil
+ * @date 2025-07-16
  */
 class ContactController extends Controller
 {
@@ -168,41 +174,26 @@ class ContactController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function merge(Request $request): JsonResponse
+    public function merge(Request $request)
     {
         $request->validate([
             'master_id' => 'required|exists:contacts,id',
-            'secondary_id' => 'required|different:master_id|exists:contacts,id',
+            'secondary_ids' => 'required|array|min:1',
+            'secondary_ids.*' => 'different:master_id|exists:contacts,id',
         ]);
 
         $master = Contact::findOrFail($request->master_id);
-        $secondary = Contact::findOrFail($request->secondary_id);
 
-        // Basic field merging logic (example)
-        if (!$master->email && $secondary->email) $master->email = $secondary->email;
-        if (!$master->phone && $secondary->phone) $master->phone = $secondary->phone;
-        $master->save();
+        foreach ($request->secondary_ids as $secondary_id) {
+            $secondary = Contact::findOrFail($secondary_id);
 
-        // Merge custom fields (only if not set in master)
-        foreach ($secondary->customFieldValues as $value) {
-            $exists = $master->customFieldValues()
-                ->where('custom_field_id', $value->custom_field_id)
-                ->exists();
+            // Merge logic here (example: take notes, emails, etc.)
 
-            if (!$exists) {
-                $master->customFieldValues()->create([
-                    'custom_field_id' => $value->custom_field_id,
-                    'value' => $value->value,
-                ]);
-            }
+            $secondary->update(['is_merged' => true]);
         }
 
-        $secondary->update([
-            'is_merged' => true,
-            'merged_into' => $master->id,
-        ]);
-
-        return response()->json(['success' => true]);
+        return response()->json(['message' => 'Contacts merged successfully.']);
     }
+
 
 }

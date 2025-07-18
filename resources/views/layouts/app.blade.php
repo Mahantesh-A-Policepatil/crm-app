@@ -30,6 +30,7 @@
         .navbar {
             background: linear-gradient(to right, #0d6efd, #6610f2); /* Cool gradient */
         }
+
         .dropdown-item.text-danger:hover {
             background-color: rgba(228, 215, 248, 0.85);
             color: #ffffff;

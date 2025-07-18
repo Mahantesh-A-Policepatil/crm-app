@@ -10,7 +10,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
+ * ContactController
  *
+ * This controller handles index, store and destroy logic
+ * for managing contacts in the CRM.
+ *
+ * @author Mahantesh-A-Policepatil
+ * @date 2025-07-16
  */
 class CustomFieldController extends Controller
 {

@@ -29,15 +29,18 @@
                 <label class="form-label d-block">Gender</label>
                 @php $gender = $contact->gender; @endphp
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="gender" value="male" id="genderMale" {{ $gender === 'male' ? 'checked' : '' }}>
+                    <input class="form-check-input" type="radio" name="gender" value="male"
+                           id="genderMale" {{ $gender === 'male' ? 'checked' : '' }}>
                     <label class="form-check-label" for="genderMale">Male</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="gender" value="female" id="genderFemale" {{ $gender === 'female' ? 'checked' : '' }}>
+                    <input class="form-check-input" type="radio" name="gender" value="female"
+                           id="genderFemale" {{ $gender === 'female' ? 'checked' : '' }}>
                     <label class="form-check-label" for="genderFemale">Female</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="gender" value="other" id="genderOther" {{ $gender === 'other' ? 'checked' : '' }}>
+                    <input class="form-check-input" type="radio" name="gender" value="other"
+                           id="genderOther" {{ $gender === 'other' ? 'checked' : '' }}>
                     <label class="form-check-label" for="genderOther">Other</label>
                 </div>
             </div>
@@ -46,7 +49,8 @@
                 <label class="form-label">Profile Image</label>
                 @if ($contact->profile_image)
                     <div class="mb-2">
-                        <img src="{{ asset('storage/' . $contact->profile_image) }}" alt="Profile Image" class="img-thumbnail" width="100">
+                        <img src="{{ asset('storage/' . $contact->profile_image) }}" alt="Profile Image"
+                             class="img-thumbnail" width="100">
                     </div>
                 @endif
                 <input type="file" name="profile_image" class="form-control">
@@ -56,7 +60,8 @@
                 <label class="form-label">Additional File</label>
                 @if ($contact->additional_file)
                     <div class="mb-2">
-                        <a href="{{ asset('storage/' . $contact->additional_file) }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Existing File</a>
+                        <a href="{{ asset('storage/' . $contact->additional_file) }}" target="_blank"
+                           class="btn btn-sm btn-outline-secondary">View Existing File</a>
                     </div>
                 @endif
                 <input type="file" name="additional_file" class="form-control">

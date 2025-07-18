@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * Contact
  *
+ * Represents a contact in the CRM.
+ * Stores personal details and is associated with custom fields and merge status.
+ *
+ * @author Mahantesh-A-Policepatil
+ * @date 2025-07-16
  */
 class Contact extends Model
 {
