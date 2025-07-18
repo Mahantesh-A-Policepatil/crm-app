@@ -28,11 +28,10 @@ class ContactController extends Controller
      * @return Application|Factory|View|JsonResponse
      * @throws Exception
      */
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $contacts = Contact::all();
+            $contacts = Contact::query();
 
             return DataTables::of($contacts)
                 ->addColumn('checkbox', function ($contact) {
@@ -40,12 +39,12 @@ class ContactController extends Controller
                         ? ''
                         : '<input type="checkbox" class="merge-checkbox" value="' . $contact->id . '">';
                 })
-                ->addColumn('name', function ($contact) {
+                ->editColumn('name', function ($contact) {
                     $icon = $contact->is_merged
                         ? '<i class="bi bi-person-dash-fill text-danger me-1" title="Merged"></i>'
                         : '<i class="bi bi-person-check-fill text-success me-1" title="Active"></i>';
 
-                    return '<span class="contact-name" id="contact-name-' . $contact->id . '">' . $icon . e($contact->name) . '</span>';
+                    return $icon . '<span class="contact-name" id="contact-name-' . $contact->id . '">' . e($contact->name) . '</span>';
                 })
                 ->addColumn('status', function ($contact) {
                     return $contact->is_merged
@@ -57,12 +56,13 @@ class ContactController extends Controller
                     $delete = '<button onclick="confirmDelete(' . $contact->id . ')" class="btn btn-sm btn-danger">Delete</button>';
                     return $edit . $delete;
                 })
-                ->rawColumns(['checkbox', 'name', 'status', 'action'])
+                ->rawColumns(['checkbox', 'name', 'status', 'action']) // allows HTML rendering
                 ->make(true);
         }
 
         return view('contacts.index');
     }
+
 
     /**
      * @param $id
