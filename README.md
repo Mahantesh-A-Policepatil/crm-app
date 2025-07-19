@@ -45,6 +45,10 @@ A simple Customer Relationship Management (CRM) system built with Laravel. This 
    ```bash
    php artisan serve
    ```
+6. Ensure symbolic link exists, run the following command
+   ```
+   php artisan storage:link
+   ```
 
 ## ⚙️ Artisan Commands Used in This Project
 

@@ -86,27 +86,46 @@
             $('#submitBtn').attr('disabled', true);
             $('#alertBox').html('');
 
-            let formData = new FormData(this);
+            let form = $(this)[0];
+            let formData = new FormData(form);
+
+            // Laravel expects method override for PUT requests
+            formData.append('_method', 'PUT');
+
+            let contactId = $('#contactId').val(); // get the contact ID
 
             $.ajax({
-                url: "{{ route('contacts.update', $contact->id) }}",
-                method: 'POST',
+                url: "{{ route('contacts.update', $contact->id) }}", // or use route helper via Blade
+                type: 'POST', // Laravel will treat this as PUT because of _method
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function () {
-                    window.location.href = "{{ route('contacts.index') }}";
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Updated!',
+                            text: response.message || 'Contact updated successfully.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        setTimeout(function () {
+                            window.location.href = "{{ route('contacts.index') }}";
+                        }, 1600);
+                    }
                 },
                 error: function (xhr) {
-                    let message = 'Something went wrong.';
-                    if (xhr.responseJSON?.message) {
+                    let message = 'Update failed!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
                     }
-                    $('#alertBox').html(`<div class="alert alert-danger">${message}</div>`);
-                },
-                complete: function () {
-                    $('#spinner').addClass('d-none');
-                    $('#submitBtn').attr('disabled', false);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message
+                    });
                 }
             });
         });

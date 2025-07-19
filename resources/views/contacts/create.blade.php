@@ -69,29 +69,47 @@
             $('#submitBtn').attr('disabled', true);
             $('#alertBox').html('');
 
-            let formData = new FormData(this);
+            //let formData = new FormData(this);
+
+            let form = $(this)[0]; // Get the actual form DOM element
+            let formData = new FormData(form);
 
             $.ajax({
                 url: "{{ route('contacts.store') }}",
-                method: 'POST',
+                type: "POST",
                 data: formData,
-                processData: false,
                 contentType: false,
-                success: function () {
-                    window.location.href = "{{ route('contacts.index') }}";
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message || 'Contact created successfully.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        // Redirect after short delay (after Swal closes)
+                        setTimeout(function () {
+                            window.location.href = "{{ route('contacts.index') }}";
+                        }, 1600); // wait for Swal to disappear
+                    }
                 },
                 error: function (xhr) {
-                    let message = 'Something went wrong.';
-                    if (xhr.responseJSON?.message) {
+                    let message = 'An error occurred!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
                     }
-                    $('#alertBox').html(`<div class="alert alert-danger">${message}</div>`);
-                },
-                complete: function () {
-                    $('#spinner').addClass('d-none');
-                    $('#submitBtn').attr('disabled', false);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message
+                    });
                 }
             });
+
         });
     </script>
 @endpush
