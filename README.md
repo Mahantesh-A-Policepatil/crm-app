@@ -93,13 +93,6 @@ A simple Customer Relationship Management (CRM) system built with Laravel. This 
   php artisan make:controller ContactController
   ```
 
-### Seeding
-
-- Seed the `contacts` table  
-  ```bash
-  php artisan db:seed --class=ContactSeeder
-  ```
-
 ## 🧪 Testing
 
 Run PHPUnit test cases:
