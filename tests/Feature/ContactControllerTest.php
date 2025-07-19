@@ -15,27 +15,33 @@ use Tests\TestCase;
  * This class contains tests to verify core CRUD operations and
  * additional functionality such as merging contacts in the CRM application.
  *
- * @author Mahantesh Policepatil
+ * @author Mahantesh-A-Policepatil
  * @date 2025-07-16
  */
 class ContactControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function setUp(): void
-    {
-        parent::setUp();
+    protected $password = 'secret123';
 
-        // Create a test user and authenticate
-        $this->actingAs(\App\Models\User::factory()->create());
-        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+    protected function loginUser(): User
+    {
+        $user = User::factory()->create([
+            'password' => bcrypt($this->password),
+        ]);
+        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class); // ✅ Skip CSRF
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => $this->password,
+        ])->assertRedirect('/home');
+
+        return $user;
     }
 
     /** @test */
-    public function it_displays_the_contacts_index_view()
+    public function a_user_can_login_and_view_contacts_index_view()
     {
-        $user = User::factory()->create(); // Assuming you have a User factory
-        $this->actingAs($user); // Authenticate
+        $this->loginUser();
 
         $response = $this->get(route('contacts.index'));
 
@@ -44,11 +50,10 @@ class ContactControllerTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_a_new_contact()
+    public function a_user_can_login_and_create_a_new_contact()
     {
+        $this->loginUser();
         Storage::fake('public');
-
-        $this->withoutMiddleware(); // ✅ Disable CSRF middleware
 
         $response = $this->postJson(route('contacts.store'), [
             'name' => 'John Doe',
@@ -64,38 +69,33 @@ class ContactControllerTest extends TestCase
 
         $this->assertDatabaseHas('contacts', [
             'name' => 'John Doe',
-            'email' => 'john@example.com'
+            'email' => 'john@example.com',
         ]);
     }
 
     /** @test */
-    public function it_can_update_an_existing_contact()
+    public function a_user_can_login_and_update_an_existing_contact()
     {
-        // Fake the storage disk
+        $this->loginUser();
         Storage::fake('public');
 
-        // Arrange: Create a contact
         $contact = Contact::factory()->create([
             'name' => 'Original Name',
             'email' => 'original@example.com',
-            'phone' => '9999999999',
         ]);
 
-        // Act: Send PUT request to update contact
-        $response = $this->json('PUT', route('contacts.update', $contact->id), [
+        $response = $this->putJson(route('contacts.update', $contact->id), [
             'name' => 'Updated Name',
             'email' => 'updated@example.com',
             'phone' => '8888888888',
             'gender' => 'male',
-            'profile_image' => UploadedFile::fake()->image('profile.jpg'),
-            'additional_file' => UploadedFile::fake()->create('doc.pdf', 100),
+            'profile_image' => UploadedFile::fake()->image('updated.jpg'),
+            'additional_file' => UploadedFile::fake()->create('updated.pdf', 100),
         ]);
 
-        // Assert: Response is OK and JSON success
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
 
-        // Assert: Updated data exists in DB
         $this->assertDatabaseHas('contacts', [
             'id' => $contact->id,
             'name' => 'Updated Name',
@@ -104,42 +104,39 @@ class ContactControllerTest extends TestCase
             'gender' => 'male',
         ]);
 
-        // Assert: Files were stored
         $updatedContact = Contact::find($contact->id);
         Storage::disk('public')->assertExists($updatedContact->profile_image);
         Storage::disk('public')->assertExists($updatedContact->additional_file);
     }
 
     /** @test */
-    public function it_can_delete_a_contact()
+    public function a_user_can_login_and_delete_a_contact()
     {
-        // Arrange: Create a contact
+        $this->loginUser();
+
         $contact = Contact::factory()->create();
 
-        // Act: Send DELETE request
         $response = $this->deleteJson(route('contacts.destroy', $contact->id));
 
-        // Assert: Successful response
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
 
-        // Assert: Contact was soft deleted
         $this->assertSoftDeleted('contacts', [
             'id' => $contact->id,
         ]);
     }
 
     /** @test */
-    public function it_can_merge_contacts()
+    public function a_user_can_login_and_merge_contacts()
     {
-        $this->withoutMiddleware();
+        $this->loginUser();
 
         $master = Contact::factory()->create();
         $secondary = Contact::factory()->create();
 
         $response = $this->postJson(route('contacts.merge'), [
             'master_id' => $master->id,
-            'secondary_ids' => [$secondary->id]
+            'secondary_ids' => [$secondary->id],
         ]);
 
         $response->assertStatus(200)
@@ -147,7 +144,8 @@ class ContactControllerTest extends TestCase
 
         $this->assertDatabaseHas('contacts', [
             'id' => $secondary->id,
-            'is_merged' => true
+            'is_merged' => true,
         ]);
     }
 }
+
